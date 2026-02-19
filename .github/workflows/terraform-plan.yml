@@ -52,7 +52,7 @@ jobs:
 
       - name: Terraform Plan
         id: plan
-        run: terraform plan -out=tfplan -no-color 2>&1 | tee plan_output.txt
+        run: terraform plan -lock-timeout=60s -out=tfplan -no-color 2>&1 | tee plan_output.txt
         working-directory: terraform/environments/${{ env.TF_VAR_environment }}
         env:
           BLOXONE_API_KEY: ${{ secrets.BLOXONE_API_KEY }}
@@ -64,15 +64,12 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const planOutput = fs.readFileSync(
-              'terraform/environments/${{ env.TF_VAR_environment }}/plan_output.txt',
-              'utf8'
-            );
-            const output = `#### Terraform Plan
-            \`\`\`
-            ${planOutput.substring(0, 65000)}
-            \`\`\`
-            *Pushed by: @${{ github.actor }}, Environment: ${{ env.TF_VAR_environment }}*`;
+            const filePath = 'terraform/environments/${{ env.TF_VAR_environment }}/plan_output.txt';
+            let planOutput = 'Plan output not available — the terraform plan step may have failed before producing output.';
+            if (fs.existsSync(filePath)) {
+              planOutput = fs.readFileSync(filePath, 'utf8');
+            }
+            const output = `#### Terraform Plan\n\`\`\`\n${planOutput.substring(0, 65000)}\n\`\`\`\n*Pushed by: @${{ github.actor }}, Environment: ${{ env.TF_VAR_environment }}*`;
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
