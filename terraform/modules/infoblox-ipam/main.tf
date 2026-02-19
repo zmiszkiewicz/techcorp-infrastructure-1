@@ -27,4 +27,6 @@ resource "bloxone_ipam_subnet" "subnets" {
   space   = bloxone_ipam_ip_space.main.id
   name    = each.value.name
   comment = each.value.comment
+
+  depends_on = [bloxone_ipam_address_block.main]
 }
