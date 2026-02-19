@@ -43,8 +43,20 @@
         id: "{{ address_block_id }}"
         cidr: 24
         count: 1
+      register: new_subnet_info
+
+    - name: Create the new subnet in IPAM
+      infoblox.universal_ddi.ipam_subnet:
+        portal_url: "{{ portal_url }}"
+        portal_key: "{{ portal_key }}"
+        address: "{{ new_subnet_info.objects[0] }}"
+        cidr: 24
+        space: "{{ ip_space_id }}"
+        name: "new-project-subnet"
+        comment: "Auto-provisioned for Project Phoenix"
+        state: present
       register: new_subnet
 
     - name: Display new subnet
       debug:
-        msg: "New /24 subnet auto-allocated: {{ new_subnet.objects[0] }}"
+        msg: "New /24 subnet auto-allocated and created: {{ new_subnet_info.objects[0] }}/24 — check IPAM in the portal!"
