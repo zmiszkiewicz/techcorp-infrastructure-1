@@ -8,6 +8,7 @@ on:
 
 env:
   TF_VAR_environment: dev
+  TF_VAR_ddi_api_key: ${{ secrets.BLOXONE_API_KEY }}
 
 jobs:
   terraform-plan:
@@ -31,7 +32,9 @@ jobs:
           terraform_wrapper: false
 
       - name: Terraform Init
-        run: terraform init
+        run: |
+          terraform init \
+            -backend-config="bucket=${{ secrets.S3_BUCKET_NAME }}"
         working-directory: terraform/environments/${{ env.TF_VAR_environment }}
 
       - name: Terraform Format Check
